@@ -1,0 +1,86 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createPageDuelClient } from "@/server/lib/pageduelClient";
+
+const range = { from: "2026-10-01", to: "2026-10-28" };
+const stats = { visitors: 10, pageviews: 20, conversionRate: 0.1, revenue: 5 };
+
+function stubFetch(...responses: Response[]) {
+  const fetchMock = vi.fn();
+  for (const response of responses) fetchMock.mockResolvedValueOnce(response);
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
+const json = (body: unknown, init?: ResponseInit) =>
+  new Response(JSON.stringify(body), init);
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("createPageDuelClient", () => {
+  it("calls the default base URL with the bearer key and parses stats with previous", async () => {
+    const fetchMock = stubFetch(
+      json({ data: stats, meta: { previous: { ...stats, visitors: 4 } } }),
+    );
+
+    const result = await createPageDuelClient("pd_key").getStats(
+      "site 1",
+      range,
+    );
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe(
+      "https://pageduel.com/api/v1/sites/site%201/stats?from=2026-10-01&to=2026-10-28",
+    );
+    expect(init.headers).toEqual({ Authorization: "Bearer pd_key" });
+    expect(result.current.visitors).toBe(10);
+    expect(result.previous.visitors).toBe(4);
+  });
+
+  it("pages listSites until hasMore is false", async () => {
+    const site = { id: "a", name: "A", domain: "a.com" };
+    const fetchMock = stubFetch(
+      json({ data: [site], meta: { pagination: { hasMore: true } } }),
+      json({
+        data: [{ ...site, id: "b" }],
+        meta: { pagination: { hasMore: false } },
+      }),
+    );
+
+    const sites = await createPageDuelClient("k").listSites();
+
+    expect(sites.map((s) => s.id)).toEqual(["a", "b"]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    [401, "pageduel_reconnect_required"],
+    [402, "pageduel_plan_required"],
+    [500, "pageduel_upstream_unavailable"],
+  ])("maps HTTP %i to %s", async (status, code) => {
+    stubFetch(new Response("{}", { status }));
+    await expect(
+      createPageDuelClient("k").getGoals("s", range),
+    ).rejects.toMatchObject({ code });
+  });
+
+  it("maps 429 to rate_limited with retryAfterSeconds", async () => {
+    stubFetch(
+      new Response("{}", { status: 429, headers: { "retry-after": "30" } }),
+    );
+    await expect(
+      createPageDuelClient("k").getGoals("s", range),
+    ).rejects.toMatchObject({
+      code: "pageduel_rate_limited",
+      retryAfterSeconds: 30,
+    });
+  });
+
+  it("maps a body that fails the schema to malformed_response", async () => {
+    stubFetch(json({ data: { visitors: "many" }, meta: {} }));
+    await expect(
+      createPageDuelClient("k").getStats("s", range),
+    ).rejects.toMatchObject({ code: "pageduel_malformed_response" });
+  });
+});
