@@ -5,7 +5,7 @@ const range = { from: "2026-10-01", to: "2026-10-28" };
 const stats = { visitors: 10, pageviews: 20, conversionRate: 0.1, revenue: 5 };
 
 function stubFetch(...responses: Response[]) {
-  const fetchMock = vi.fn();
+  const fetchMock = vi.fn<typeof fetch>();
   for (const response of responses) fetchMock.mockResolvedValueOnce(response);
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
@@ -33,7 +33,7 @@ describe("createPageDuelClient", () => {
     expect(url).toBe(
       "https://pageduel.com/api/v1/sites/site%201/stats?from=2026-10-01&to=2026-10-28",
     );
-    expect(init.headers).toEqual({ Authorization: "Bearer pd_key" });
+    expect(init?.headers).toEqual({ Authorization: "Bearer pd_key" });
     expect(result.current.visitors).toBe(10);
     expect(result.previous.visitors).toBe(4);
   });

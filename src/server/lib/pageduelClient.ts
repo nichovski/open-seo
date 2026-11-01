@@ -6,10 +6,10 @@ const DEFAULT_BASE_URL = "https://pageduel.com";
 const SITES_PAGE_LIMIT = 100;
 const MAX_SITES_PAGES = 10;
 
-export interface PageDuelRange {
+export type PageDuelRange = {
   from: string;
   to: string;
-}
+};
 
 const siteSchema = z.object({
   id: z.string(),
@@ -45,8 +45,7 @@ const timeseriesPointSchema = z.object({
   visitors: z.number(),
 });
 
-export type PageDuelStats = z.infer<typeof statsSchema>;
-export type PageDuelSite = z.infer<typeof siteSchema>;
+type PageDuelSite = z.infer<typeof siteSchema>;
 
 const sitesResponse = z.object({
   data: z.array(siteSchema),
@@ -70,13 +69,14 @@ function statusToError(response: Response): PageDuelError {
     const retryAfter = Number(response.headers.get("retry-after"));
     return new PageDuelError(
       "pageduel_rate_limited",
-      undefined,
       Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : null,
     );
   }
   if (status === 400) return new PageDuelError("pageduel_invalid_request");
   return new PageDuelError("pageduel_upstream_unavailable");
 }
+
+const siteBase = (siteId: string) => `/sites/${encodeURIComponent(siteId)}`;
 
 export function createPageDuelClient(apiKey: string) {
   async function get<T>(
@@ -101,8 +101,6 @@ export function createPageDuelClient(apiKey: string) {
     if (!parsed.success) throw new PageDuelError("pageduel_malformed_response");
     return parsed.data;
   }
-
-  const siteBase = (siteId: string) => `/sites/${encodeURIComponent(siteId)}`;
 
   return {
     async listSites(): Promise<PageDuelSite[]> {

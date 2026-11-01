@@ -2,14 +2,14 @@ import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 import { readdirSync, readFileSync } from "node:fs";
 import { drizzle } from "drizzle-orm/sqlite-proxy";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { pageduelConnections } from "@/db/pageduel.schema";
 import { PageDuelService } from "./PageDuelService";
 
 const state = vi.hoisted(() => ({
   database: null as DatabaseSync | null,
   client: {
     listSites: vi.fn(),
-    getStats: vi.fn(),
+    getStats:
+      vi.fn<(siteId: string, range: { from: string }) => Promise<unknown>>(),
     getTimeseries: vi.fn(),
   },
   createClient: vi.fn(),
@@ -91,10 +91,9 @@ describe("PageDuelService", () => {
     const report = await PageDuelService.getDashboardReport("p1");
 
     expect(state.createClient).toHaveBeenLastCalledWith(apiKey);
-    expect(state.client.getStats).toHaveBeenCalledWith(
-      "site-1",
-      expect.objectContaining({ from: expect.any(String) }),
-    );
+    const [siteId, range] = state.client.getStats.mock.calls[0];
+    expect(siteId).toBe("site-1");
+    expect(range.from).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(report).toMatchObject({
       connected: true,
       site: { name: "Acme" },

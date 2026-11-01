@@ -2,7 +2,7 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { pageduelConnections } from "@/db/pageduel-table";
 
-export type PageDuelConnection = typeof pageduelConnections.$inferSelect;
+type PageDuelConnection = typeof pageduelConnections.$inferSelect;
 
 async function getByProjectId(
   projectId: string,

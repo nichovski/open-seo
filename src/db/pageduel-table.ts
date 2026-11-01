@@ -8,5 +8,6 @@ const table =
     ? pgPageduel.pageduelConnections
     : sqlitePageduel.pageduelConnections;
 
-// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- guarded by schema-parity.test.ts
-export const pageduelConnections = table as unknown as typeof sqlitePageduel.pageduelConnections;
+export const pageduelConnections: typeof sqlitePageduel.pageduelConnections =
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- guarded by schema-parity.test.ts
+  table as unknown as typeof sqlitePageduel.pageduelConnections;

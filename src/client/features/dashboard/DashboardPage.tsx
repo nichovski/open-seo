@@ -27,6 +27,7 @@ import {
   GscCard,
 } from "@/client/features/dashboard/DashboardCards";
 import { Ga4Card } from "@/client/features/dashboard/Ga4Card";
+import { PageDuelCard } from "@/client/features/dashboard/PageDuelCard";
 import { WorkspaceMergeBanner } from "@/client/features/dashboard/WorkspaceMergeBanner";
 import { QueryError } from "@/client/components/QueryState";
 import {
@@ -170,6 +171,11 @@ export function DashboardPage({
           },
         ]
       : []),
+    {
+      key: "pageduel",
+      hasData: true,
+      node: <PageDuelCard projectId={projectId} />,
+    },
   ];
 
   return (
