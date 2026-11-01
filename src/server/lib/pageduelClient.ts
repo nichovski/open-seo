@@ -73,7 +73,7 @@ function statusToError(response: Response): PageDuelError {
       retryAfterMs ? Math.ceil(retryAfterMs / 1000) : null,
     );
   }
-  if (status >= 400 && status < 500) {
+  if (status >= 400 && status < 500 && status !== 408) {
     return new PageDuelError("pageduel_invalid_request");
   }
   return new PageDuelError("pageduel_upstream_unavailable");
