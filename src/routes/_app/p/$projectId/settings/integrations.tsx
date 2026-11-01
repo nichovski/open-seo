@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { CrawlerAccessSettings } from "@/client/features/settings/CrawlerAccessSettings";
 import { IndexNowSettings } from "@/client/features/settings/IndexNowSettings";
+import { PageDuelConnectionCard } from "@/client/features/integrations/pageduel/PageDuelConnectionCard";
 
 export const Route = createFileRoute(
   "/_app/p/$projectId/settings/integrations",
@@ -34,6 +35,10 @@ function ProjectIntegrationsRoute() {
 
       <section id="google-analytics" className="scroll-mt-6">
         <GoogleConnectionCard provider="ga4" projectId={projectId} />
+      </section>
+
+      <section id="pageduel" className="scroll-mt-6">
+        <PageDuelConnectionCard projectId={projectId} />
       </section>
 
       <IndexNowSettings projectId={projectId} />

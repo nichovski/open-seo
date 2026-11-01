@@ -56,6 +56,7 @@ import {
   getSearchOpportunitiesTool,
 } from "@/server/mcp/tools/google-analytics-tools";
 import { createProjectTool } from "@/server/mcp/tools/create-project";
+import { registerPageDuelTools } from "@/server/mcp/tools/pageduel-tools";
 import {
   listGoogleAnalyticsPropertiesTool,
   listSearchConsoleSitesTool,
@@ -377,6 +378,7 @@ export function createOpenSeoMcpServer(
   }
 
   registerOpenSeoTools(register);
+  registerPageDuelTools(register);
 
   return server;
 }
