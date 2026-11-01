@@ -83,4 +83,43 @@ describe("createPageDuelClient", () => {
       createPageDuelClient("k").getStats("s", range),
     ).rejects.toMatchObject({ code: "pageduel_malformed_response" });
   });
+
+  it("reads an HTTP-date retry-after as seconds", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-01T10:00:00Z"));
+    const at = "Sun, 01 Nov 2026 10:01:00 GMT";
+    stubFetch(
+      new Response("{}", { status: 429, headers: { "retry-after": at } }),
+    );
+    await expect(
+      createPageDuelClient("k").getGoals("s", range),
+    ).rejects.toMatchObject({
+      code: "pageduel_rate_limited",
+      retryAfterSeconds: 60,
+    });
+    vi.useRealTimers();
+  });
+
+  it("maps other 4xx to invalid_request", async () => {
+    stubFetch(new Response("{}", { status: 422 }));
+    await expect(
+      createPageDuelClient("k").getGoals("s", range),
+    ).rejects.toMatchObject({ code: "pageduel_invalid_request" });
+  });
+
+  it("maps a failed body read to upstream_unavailable", async () => {
+    const response = new Response("{}");
+    vi.spyOn(response, "text").mockRejectedValue(new TypeError("aborted"));
+    stubFetch(response);
+    await expect(
+      createPageDuelClient("k").getGoals("s", range),
+    ).rejects.toMatchObject({ code: "pageduel_upstream_unavailable" });
+  });
+
+  it("maps a non-JSON body to malformed_response", async () => {
+    stubFetch(new Response("<html>"));
+    await expect(
+      createPageDuelClient("k").getGoals("s", range),
+    ).rejects.toMatchObject({ code: "pageduel_malformed_response" });
+  });
 });

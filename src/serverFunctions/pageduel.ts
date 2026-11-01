@@ -17,10 +17,17 @@ const connectSchema = listSitesSchema.extend({
   siteId: z.string().min(1).max(100),
 });
 
-type KeyProblem = "invalid_key" | "no_api_access" | "rate_limited";
+type KeyProblem =
+  | "invalid_key"
+  | "no_api_access"
+  | "rate_limited"
+  | "site_not_found";
 
 /** Problems the user can fix show as a result; real faults still throw. */
 function toKeyProblem(error: unknown): { problem: KeyProblem } {
+  if (error instanceof AppError && error.code === "NOT_FOUND") {
+    return { problem: "site_not_found" };
+  }
   if (error instanceof PageDuelError) {
     if (error.code === "pageduel_reconnect_required") {
       return { problem: "invalid_key" };

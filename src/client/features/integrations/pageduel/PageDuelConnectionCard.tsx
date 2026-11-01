@@ -23,6 +23,8 @@ const PROBLEM_COPY = {
   no_api_access:
     "This PageDuel plan does not include API access. Upgrade to a paid plan.",
   rate_limited: "PageDuel rate limit reached. Try again later.",
+  site_not_found:
+    "This site is no longer available for this API key. Find sites again.",
 } as const;
 
 const formSchema = z.object({

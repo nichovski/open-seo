@@ -87,7 +87,9 @@ export function PageDuelCard({ projectId }: { projectId: string }) {
         </p>
       ) : "problem" in report ? (
         <p className="text-sm text-muted-foreground">
-          PageDuel rejected the saved API key.{" "}
+          {report.problem === "plan"
+            ? "This PageDuel plan does not include API access."
+            : "PageDuel rejected the saved API key."}{" "}
           <Link
             to="/p/$projectId/settings/integrations"
             params={{ projectId }}

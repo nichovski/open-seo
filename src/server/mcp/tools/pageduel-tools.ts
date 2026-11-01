@@ -25,6 +25,21 @@ const bothOrNeither = (value: { startDate?: string; endDate?: string }) =>
   (value.startDate === undefined) === (value.endDate === undefined);
 const bothOrNeitherMessage = "Provide both startDate and endDate, or neither.";
 
+const isRealDate = (value: string) => {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return (
+    !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value
+  );
+};
+const validRange = (value: { startDate?: string; endDate?: string }) =>
+  value.startDate === undefined ||
+  value.endDate === undefined ||
+  (isRealDate(value.startDate) &&
+    isRealDate(value.endDate) &&
+    value.startDate <= value.endDate);
+const validRangeMessage =
+  "Dates must be valid YYYY-MM-DD values with startDate on or before endDate.";
+
 const outputSchema = z
   .object({ status: z.enum(["ok", "error"]) })
   .passthrough();
@@ -40,7 +55,8 @@ const READ_ONLY_NOTE =
 
 const overviewInputSchema = z
   .strictObject(dateShape)
-  .refine(bothOrNeither, bothOrNeitherMessage);
+  .refine(bothOrNeither, bothOrNeitherMessage)
+  .refine(validRange, validRangeMessage);
 const topPagesInputSchema = z
   .strictObject({
     ...dateShape,
@@ -53,7 +69,8 @@ const topPagesInputSchema = z
       ),
     limit: z.number().int().min(1).max(50).optional().default(25),
   })
-  .refine(bothOrNeither, bothOrNeitherMessage);
+  .refine(bothOrNeither, bothOrNeitherMessage)
+  .refine(validRange, validRangeMessage);
 
 type ProjectContext = { baseUrl: string };
 

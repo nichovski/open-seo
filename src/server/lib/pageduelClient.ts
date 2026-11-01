@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { parseRetryAfterMs } from "@/server/lib/audit/crawl-throttle";
 import { PageDuelError } from "@/server/lib/pageduelErrors";
 import { getOptionalEnvValue } from "@/server/lib/runtime-env";
 
@@ -66,13 +67,15 @@ function statusToError(response: Response): PageDuelError {
   }
   if (status === 402) return new PageDuelError("pageduel_plan_required");
   if (status === 429) {
-    const retryAfter = Number(response.headers.get("retry-after"));
+    const retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after"));
     return new PageDuelError(
       "pageduel_rate_limited",
-      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : null,
+      retryAfterMs ? Math.ceil(retryAfterMs / 1000) : null,
     );
   }
-  if (status === 400) return new PageDuelError("pageduel_invalid_request");
+  if (status >= 400 && status < 500) {
+    return new PageDuelError("pageduel_invalid_request");
+  }
   return new PageDuelError("pageduel_upstream_unavailable");
 }
 
@@ -88,16 +91,25 @@ export function createPageDuelClient(apiKey: string) {
       (await getOptionalEnvValue("PAGEDUEL_BASE_URL")) ?? DEFAULT_BASE_URL;
     const url = `${baseUrl}/api/v1${path}?${new URLSearchParams(query)}`;
     let response: Response;
+    let body: string;
     try {
       response = await fetch(url, {
         headers: { Authorization: `Bearer ${apiKey}` },
         signal: AbortSignal.timeout(10_000),
       });
-    } catch {
+      if (!response.ok) throw statusToError(response);
+      body = await response.text();
+    } catch (error) {
+      if (error instanceof PageDuelError) throw error;
       throw new PageDuelError("pageduel_upstream_unavailable");
     }
-    if (!response.ok) throw statusToError(response);
-    const parsed = schema.safeParse(await response.json().catch(() => null));
+    let json: unknown;
+    try {
+      json = JSON.parse(body);
+    } catch {
+      throw new PageDuelError("pageduel_malformed_response");
+    }
+    const parsed = schema.safeParse(json);
     if (!parsed.success) throw new PageDuelError("pageduel_malformed_response");
     return parsed.data;
   }

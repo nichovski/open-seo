@@ -126,6 +126,9 @@ async function getDashboardReport(projectId: string) {
       if (error.code === "pageduel_reconnect_required") {
         return { connected: true as const, problem: "reconnect" as const };
       }
+      if (error.code === "pageduel_plan_required") {
+        return { connected: true as const, problem: "plan" as const };
+      }
     }
     throw error;
   }
