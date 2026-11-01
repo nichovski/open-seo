@@ -96,7 +96,9 @@ export function PageDuelCard({ projectId }: { projectId: string }) {
             hash="pageduel"
             className="underline"
           >
-            Reconnect in Settings
+            {report.problem === "plan"
+              ? "Manage in Settings"
+              : "Reconnect in Settings"}
           </Link>
         </p>
       ) : (

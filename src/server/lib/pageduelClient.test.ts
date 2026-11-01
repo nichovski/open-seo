@@ -16,6 +16,7 @@ const json = (body: unknown, init?: ResponseInit) =>
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("createPageDuelClient", () => {
@@ -97,7 +98,6 @@ describe("createPageDuelClient", () => {
       code: "pageduel_rate_limited",
       retryAfterSeconds: 60,
     });
-    vi.useRealTimers();
   });
 
   it("maps other 4xx to invalid_request", async () => {
