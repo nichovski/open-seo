@@ -1,9 +1,70 @@
 {
-  "id": "0933355c-f266-43d6-8dcf-7d2096a052bf",
+  "id": "bc88bc78-11f1-4d81-8871-ae406741846d",
   "prevId": "e55a0fe9-3358-4a35-8d3b-4d0a289d78f0",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.account_deletion_requests": {
+      "name": "account_deletion_requests",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "delete_after": {
+          "name": "delete_after",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "account_deletion_requests_delete_after_idx": {
+          "name": "account_deletion_requests_delete_after_idx",
+          "columns": [
+            {
+              "expression": "delete_after",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "account_deletion_requests_user_id_user_id_fk": {
+          "name": "account_deletion_requests_user_id_user_id_fk",
+          "tableFrom": "account_deletion_requests",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.backlink_snapshots": {
       "name": "backlink_snapshots",
       "schema": "",
@@ -6223,77 +6284,6 @@
         "local_rank_trackers_project_id_projects_id_fk": {
           "name": "local_rank_trackers_project_id_projects_id_fk",
           "tableFrom": "local_rank_trackers",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.pageduel_connections": {
-      "name": "pageduel_connections",
-      "schema": "",
-      "columns": {
-        "project_id": {
-          "name": "project_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "site_id": {
-          "name": "site_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "site_name": {
-          "name": "site_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "site_domain": {
-          "name": "site_domain",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "api_key_ciphertext": {
-          "name": "api_key_ciphertext",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "pageduel_connections_project_id_projects_id_fk": {
-          "name": "pageduel_connections_project_id_projects_id_fk",
-          "tableFrom": "pageduel_connections",
           "tableTo": "projects",
           "columnsFrom": [
             "project_id"
