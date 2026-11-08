@@ -29,7 +29,7 @@ New (fork-only):
 | Area                 | File                                                                                                                     |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | Table                | `src/db/pageduel.schema.ts`, `src/db/pg/pageduel.schema.ts`, `src/db/pageduel-table.ts`                                  |
-| Migrations           | `drizzle/sqlite/0063_pageduel_connections.sql`, `drizzle/pg/0041_pageduel_connections.sql`                               |
+| Migrations           | `drizzle/sqlite/0069_pageduel_connections.sql`, `drizzle/pg/0047_pageduel_connections.sql`                               |
 | API client + errors  | `src/server/lib/pageduelClient.ts`, `src/server/lib/pageduelErrors.ts`                                                   |
 | Repository + service | `src/server/features/pageduel/`                                                                                          |
 | Server functions     | `src/serverFunctions/pageduel.ts`                                                                                        |
