@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { sortBy } from "remeda";
 import {
   customerHasPaidPlan,
   type BillingCustomerContext,
@@ -22,6 +23,7 @@ import {
 } from "./rankCheckRunGuards";
 import {
   estimateRankCheckCredits,
+  isRankCheckDelayed,
   MAX_CONFIGS_PER_PROJECT,
   rankCheckCostApprovalError,
 } from "@/shared/rank-tracking";
@@ -310,12 +312,7 @@ async function getLatestRun(configId: string, projectId: string) {
   // this read path caused a race where the original workflow kept running
   // while a replacement was started.
   const reconciliation = await reconcileActiveRankCheckRun(run);
-  if (reconciliation) {
-    return formatRun(run, {
-      maybeStale: true,
-      staleReason: reconciliation.errorMessage,
-    });
-  }
+  if (reconciliation) return formatRun(run, reconciliation.errorMessage);
 
   return formatRun(run);
 }
@@ -383,8 +380,15 @@ async function refreshKeywordMetrics(
 // MCP/browser read models and access policy
 // ---------------------------------------------------------------------------
 
-async function getConfigs(projectId: string) {
-  return RankTrackingRepository.getConfigsForProject(projectId);
+/**
+ * The project's trackers, oldest first, except that the project's own site
+ * comes first when it has a tracker: it is the one a reader expects to see.
+ */
+async function getConfigs(projectId: string, projectDomain: string | null) {
+  const configs = await RankTrackingRepository.getConfigsForProject(projectId);
+  const ownDomain = projectDomain ? bareDomain(projectDomain) : "";
+  if (!ownDomain) return configs;
+  return sortBy(configs, (config) => (config.domain === ownDomain ? 0 : 1));
 }
 
 async function getTracker(configId: string, projectId: string) {
@@ -451,6 +455,15 @@ async function getValidatedConfig(configId: string, projectId: string) {
 }
 
 function normalizeDomain(domain: string): string {
+  const d = bareDomain(domain);
+  if (!d) {
+    throw new AppError("INTERNAL_ERROR", "Invalid domain");
+  }
+  return d;
+}
+
+/** The hostname part of a domain or URL, as trackers store it; "" if none. */
+function bareDomain(domain: string): string {
   let d = domain.trim().toLowerCase();
   // Strip protocol
   d = d.replace(/^https?:\/\//, "");
@@ -459,21 +472,14 @@ function normalizeDomain(domain: string): string {
   // Strip trailing slash
   d = d.replace(/\/+$/, "");
   // Strip www. prefix
-  d = d.replace(/^www\./, "");
-  if (!d) {
-    throw new AppError("INTERNAL_ERROR", "Invalid domain");
-  }
-  return d;
+  return d.replace(/^www\./, "");
 }
 
 type RunRow = NonNullable<
   Awaited<ReturnType<typeof RankTrackingRepository.getLatestRunForConfig>>
 >;
 
-function formatRun(
-  run: RunRow,
-  stale?: { maybeStale: boolean; staleReason: string },
-) {
+function formatRun(run: RunRow, staleReason?: string) {
   return {
     id: run.id,
     status: run.status,
@@ -483,8 +489,9 @@ function formatRun(
     errorMessage: run.errorMessage,
     startedAt: run.startedAt,
     completedAt: run.completedAt,
-    maybeStale: stale?.maybeStale ?? false,
-    staleReason: stale?.staleReason ?? null,
+    isDelayed: isRankCheckDelayed(run),
+    maybeStale: staleReason !== undefined,
+    staleReason: staleReason ?? null,
   };
 }
 

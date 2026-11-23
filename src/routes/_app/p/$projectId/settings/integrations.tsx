@@ -3,6 +3,7 @@ import { googleConnectionOptions } from "@/client/features/integrations/googlePr
 import { createFileRoute } from "@tanstack/react-router";
 import { GoogleConnectionCard } from "@/client/features/integrations/GoogleConnectionCard";
 import { CrawlerAccessSettings } from "@/client/features/settings/CrawlerAccessSettings";
+import { EmbedSettings } from "@/client/features/embeds/EmbedSettings";
 import { IndexNowSettings } from "@/client/features/settings/IndexNowSettings";
 import { PageDuelConnectionCard } from "@/client/features/integrations/pageduel/PageDuelConnectionCard";
 
@@ -40,6 +41,8 @@ function ProjectIntegrationsRoute() {
       <section id="pageduel" className="scroll-mt-6">
         <PageDuelConnectionCard projectId={projectId} />
       </section>
+
+      <EmbedSettings projectId={projectId} />
 
       <IndexNowSettings projectId={projectId} />
 

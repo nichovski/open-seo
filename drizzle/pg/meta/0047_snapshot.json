@@ -1,5 +1,5 @@
 {
-  "id": "1d3df81a-0ac0-46b3-9aeb-9533d6149390",
+  "id": "9a2b38b9-b1cd-4a27-9abd-a2cbae1a37b6",
   "prevId": "44d059c5-ae2a-4e22-bd2d-87b987a5293f",
   "version": "7",
   "dialect": "postgresql",
@@ -5521,6 +5521,13 @@
           "notNull": true,
           "default": false
         },
+        "google_ai_mode": {
+          "name": "google_ai_mode",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "location_code": {
           "name": "location_code",
           "type": "integer",
@@ -6414,77 +6421,6 @@
         "local_rank_trackers_project_id_projects_id_fk": {
           "name": "local_rank_trackers_project_id_projects_id_fk",
           "tableFrom": "local_rank_trackers",
-          "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.pageduel_connections": {
-      "name": "pageduel_connections",
-      "schema": "",
-      "columns": {
-        "project_id": {
-          "name": "project_id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "site_id": {
-          "name": "site_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "site_name": {
-          "name": "site_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "site_domain": {
-          "name": "site_domain",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "api_key_ciphertext": {
-          "name": "api_key_ciphertext",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "to_char(now() AT TIME ZONE 'utc', 'YYYY-MM-DD\"T\"HH24:MI:SS.MS\"Z\"')"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "pageduel_connections_project_id_projects_id_fk": {
-          "name": "pageduel_connections_project_id_projects_id_fk",
-          "tableFrom": "pageduel_connections",
           "tableTo": "projects",
           "columnsFrom": [
             "project_id"
